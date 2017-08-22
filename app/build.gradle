@@ -24,6 +24,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.google.android.gms:play-services:11.0.0'
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
 
 }
 apply plugin: 'com.google.gms.google-services'
