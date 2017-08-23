@@ -33,7 +33,7 @@
             android:name=".Activities.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme" />
-        <activity android:name=".Activities.ProfileAcitivity"></activity>
+        <activity android:name=".Activities.ProfileActivity"></activity>
     </application>
 
 </manifest>
