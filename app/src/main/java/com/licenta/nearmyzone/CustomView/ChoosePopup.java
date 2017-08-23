@@ -2,7 +2,10 @@ package com.licenta.nearmyzone.CustomView;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.view.View;
+import android.widget.TextView;
 
+import com.google.android.gms.vision.text.Text;
 import com.licenta.nearmyzone.R;
 
 /**
@@ -16,18 +19,43 @@ public class ChoosePopup {
 
     private Boolean isInit = false;
 
+    private TextView hotelTextView;
+    private TextView busTextView;
+    private TextView trainTextView;
+    private TextView restaurantTextView;
+
     public ChoosePopup(Context context) {
         this.context = context;
 
     }
 
+
     public void init() {
         dialog = new Dialog(context, R.style.CustomAlertDialog);
         dialog.setContentView(R.layout.choose_popup_layout);
         dialog.setCanceledOnTouchOutside(true);
+        hotelTextView = (TextView) dialog.findViewById(R.id.pop_up_check_in_view_hotel);
+        restaurantTextView = (TextView) dialog.findViewById(R.id.pop_up_check_in_view_restaurant);
+        busTextView = (TextView) dialog.findViewById(R.id.pop_up_check_in_view_bus);
+        trainTextView = (TextView) dialog.findViewById(R.id.pop_up_check_in_view_trani);
         isInit = true;
     }
 
+    public void setBusClickListener(View.OnClickListener clickListener) {
+        busTextView.setOnClickListener(clickListener);
+    }
+
+    public void setTrainClickListener(View.OnClickListener clickListener) {
+        trainTextView.setOnClickListener(clickListener);
+    }
+
+    public void setRestaurantClickListener(View.OnClickListener clickListener) {
+        restaurantTextView.setOnClickListener(clickListener);
+    }
+
+    public void setHotelClickListener(View.OnClickListener clickListener) {
+        hotelTextView.setOnClickListener(clickListener);
+    }
 
     public void showPopup() {
         try {

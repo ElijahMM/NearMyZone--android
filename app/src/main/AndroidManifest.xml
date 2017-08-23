@@ -11,10 +11,12 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyDuv0seZBjZeAnGenZw2QaH81_y3M-D-ao"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDuv0seZBjZeAnGenZw2QaH81_y3M-D-ao" />
 
         <activity android:name=".Activities.SplashScreen">
             <intent-filter>
@@ -29,8 +31,8 @@
         <activity android:name=".Activities.RegisterActivity" />
         <activity
             android:name=".Activities.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
+        <activity android:name=".Activities.ProfileAcitivity"></activity>
     </application>
 
 </manifest>

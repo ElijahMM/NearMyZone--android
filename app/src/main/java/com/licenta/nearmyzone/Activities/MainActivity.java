@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.licenta.nearmyzone.CustomView.ChoosePopup;
+import com.licenta.nearmyzone.CustomView.SearchPopup;
 import com.licenta.nearmyzone.Handlers.GPSLocation;
 import com.licenta.nearmyzone.R;
 import com.licenta.nearmyzone.Utils.Util;
@@ -37,7 +38,7 @@ import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
-    @BindView(R.id.toolbar)
+    @BindView(R.id.main_toolbar)
     Toolbar toolbar;
     @BindView(R.id.nav_view)
     NavigationView navigationView;
@@ -67,7 +68,6 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
-        navigationView.setNavigationItemSelectedListener(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -163,10 +163,20 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_find_near) {
             ChoosePopup choosePopup = new ChoosePopup(MainActivity.this);
             choosePopup.init();
+            initChosePopupListeners(choosePopup);
             choosePopup.showPopup();
         } else if (id == R.id.nav_find) {
+            SearchPopup searchPopup = new SearchPopup(MainActivity.this);
+            searchPopup.init();
+            searchPopup.setSearchClickListner(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
+                }
+            });
+            searchPopup.showPopup();
         } else if (id == R.id.nav_profile) {
+            Util.openActivity(MainActivity.this, ProfileAcitivity.class);
 
         } else if (id == R.id.nav_logout) {
 
@@ -176,6 +186,32 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private void initChosePopupListeners(ChoosePopup choosePopup){
+        choosePopup.setBusClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        choosePopup.setHotelClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        choosePopup.setRestaurantClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        choosePopup.setTrainClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

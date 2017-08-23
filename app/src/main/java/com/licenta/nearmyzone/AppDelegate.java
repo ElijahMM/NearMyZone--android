@@ -9,7 +9,9 @@ import android.content.Context;
 
 public class AppDelegate extends Application {
 
-   public static Context myContext;
+
+    public static Context myContext;
+
 
     @Override
     public void onCreate() {
@@ -17,8 +19,11 @@ public class AppDelegate extends Application {
         myContext = this;
     }
 
+
     public static Context getMyContext() {
+
         return myContext;
     }
+
 
 }

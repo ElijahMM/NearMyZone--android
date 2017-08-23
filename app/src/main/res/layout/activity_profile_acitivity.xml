@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.licenta.nearmyzone.Activities.RegisterActivity">
+    tools:context="com.licenta.nearmyzone.Activities.ProfileAcitivity">
 
 
     <ScrollView
@@ -21,7 +21,7 @@
             android:layout_height="wrap_content">
 
             <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/register_activity_imageUser"
+                android:id="@+id/profile_activity_imageUser"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:src="@drawable/register_image"
@@ -32,7 +32,7 @@
 
 
             <android.support.design.widget.TextInputLayout
-                android:id="@+id/register_activity_tinputUsername"
+                android:id="@+id/profile_activity_tinputUsername"
                 android:layout_marginTop="8dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -41,13 +41,13 @@
                 app:errorEnabled="true"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/register_activity_imageUser">
+                app:layout_constraintTop_toBottomOf="@+id/profile_activity_imageUser">
 
                 <EditText
-                    android:id="@+id/register_activity_username_text"
+                    android:id="@+id/profile_activity_username_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Username"
+                    android:hint="Change Username"
                     android:singleLine="true"
                     tools:layout_editor_absoluteX="8dp"
                     tools:layout_editor_absoluteY="144dp" />
@@ -55,7 +55,7 @@
 
 
             <android.support.design.widget.TextInputLayout
-                android:id="@+id/register_activity_tinputMail"
+                android:id="@+id/profile_activity_tinputOldPassword"
                 android:layout_marginTop="8dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -64,22 +64,22 @@
                 app:errorEnabled="true"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/register_activity_tinputUsername">
+                app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputUsername">
 
                 <EditText
-                    android:id="@+id/register_activity_mail_text"
+                    android:id="@+id/profile_activity_mail_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="E-Mail"
+                    android:hint="Old Password"
                     android:singleLine="true"
-                    android:inputType="textEmailAddress"
+                    android:inputType="textPassword"
                     tools:layout_editor_absoluteX="8dp"
                     tools:layout_editor_absoluteY="144dp" />
             </android.support.design.widget.TextInputLayout>
 
 
             <android.support.design.widget.TextInputLayout
-                android:id="@+id/register_activity_tinputPassword"
+                android:id="@+id/profile_activity_tinputNewPassword"
                 android:layout_marginTop="8dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -88,13 +88,13 @@
                 app:errorEnabled="true"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/register_activity_tinputMail">
+                app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputOldPassword">
 
                 <EditText
-                    android:id="@+id/register_activity_password_text"
+                    android:id="@+id/profile_activity_new_password_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Password"
+                    android:hint="New Password"
                     android:inputType="textPassword"
                     android:singleLine="true"
                     tools:layout_editor_absoluteX="8dp"
@@ -102,7 +102,7 @@
             </android.support.design.widget.TextInputLayout>
 
             <android.support.design.widget.TextInputLayout
-                android:id="@+id/register_activity_tinputConfirmPassword"
+                android:id="@+id/profile_activity_tinputConfirmNewPassword"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
@@ -111,37 +111,37 @@
                 app:errorEnabled="true"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/register_activity_tinputPassword">
+                app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputNewPassword">
 
                 <EditText
-                    android:id="@+id/register_activity_confirmpassword_text"
+                    android:id="@+id/profile_activity_confirmnewpassword_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Confirm Password"
+                    android:hint="Confim New Password"
                     android:inputType="textPassword"
                     android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
 
 
             <Button
-                android:id="@+id/register_activity_login_button"
+                android:id="@+id/profile_activity_login_button"
                 android:layout_marginTop="8dp"
                 android:layout_width="245dp"
                 android:layout_height="48dp"
                 android:background="@drawable/round_button"
-                android:text="Register"
+                android:text="Save changes"
                 android:orientation="vertical"
                 android:textColor="@color/primaryText"
                 app:layout_constraintHorizontal_bias="0.50"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/register_activity_tinputConfirmPassword"
+                app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputConfirmNewPassword"
                 app:layout_constraintVertical_bias="0.50" />
 
 
             <android.support.constraint.Guideline
-                android:id="@+id/register_activity_guideline"
+                android:id="@+id/profile_activity_guideline"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -153,4 +153,9 @@
 
     </ScrollView>
 
+
+
 </android.support.constraint.ConstraintLayout>
+
+
+

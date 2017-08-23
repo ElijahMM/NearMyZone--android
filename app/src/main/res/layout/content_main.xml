@@ -32,22 +32,22 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <RelativeLayout
-        android:visibility="gone"
         android:id="@+id/main_view_details"
         android:layout_width="0dp"
         android:layout_height="100dp"
         android:background="@drawable/rectangle"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
     <RelativeLayout
-
         android:id="@+id/main_view_toggle_details"
         android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="-2dp"
         android:background="@drawable/semi_circle"
+        android:padding="5dp"
         app:layout_constraintBottom_toTopOf="@+id/main_view_details"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
