@@ -17,7 +17,6 @@ import butterknife.OnClick;
 
 public class RegisterActivity extends AppCompatActivity {
 
-
     @BindView(R.id.register_activity_username_text)
     EditText userNameEditText;
     @BindView(R.id.register_activity_mail_text)
@@ -148,6 +147,7 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+
     @OnClick({R.id.register_activity_login_button})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -158,7 +158,3 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 }
-
-
-
-

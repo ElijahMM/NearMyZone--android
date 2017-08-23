@@ -8,6 +8,8 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 
+import com.licenta.nearmyzone.Handlers.PermissionHandler;
+
 import com.licenta.nearmyzone.R;
 import com.licenta.nearmyzone.Utils.Util;
 
@@ -88,7 +90,12 @@ public class LoginActivity extends AppCompatActivity {
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.login_activity_login_button:
-                validateAndNext();
+        // validateAndNext();
+                if (!PermissionHandler.getInstance().checkPermissions(LoginActivity.this)) {
+                    return;
+                }
+                Util.openActivity(LoginActivity.this, MainActivity.class);
+
                 break;
             case R.id.login_activity_register_button:
                 Util.openActivity(LoginActivity.this, RegisterActivity.class);
