@@ -2,12 +2,9 @@ package com.licenta.nearmyzone.Activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -16,8 +13,9 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,13 +24,16 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.licenta.nearmyzone.CustomView.ChoosePopup;
 import com.licenta.nearmyzone.Handlers.GPSLocation;
 import com.licenta.nearmyzone.R;
 import com.licenta.nearmyzone.Utils.Util;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
@@ -42,9 +43,15 @@ public class MainActivity extends AppCompatActivity
     NavigationView navigationView;
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer;
+    @BindView(R.id.main_view_details)
+    RelativeLayout detailsView;
+    @BindView(R.id.main_view_toggle_details_imageView)
+    ImageView toggleDetailsView;
 
     private GPSLocation gpsLocation;
     private GoogleMap gMap;
+    private Boolean toggleMenu = false;
+    private Marker myMarker = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,13 +91,17 @@ public class MainActivity extends AppCompatActivity
     private GPSLocation.LocationResult locationResult = new GPSLocation.LocationResult() {
         @Override
         public void gotLocation(Location location) {
-            gMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(location.getLatitude(),location.getLongitude()))
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+            if (myMarker == null) {
+                myMarker = gMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(location.getLatitude(), location.getLongitude()))
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
 
-            );
-            CameraUpdate center= CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(),location.getLongitude()));
-            CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
+                );
+            } else {
+                myMarker.setPosition(new LatLng(location.getLatitude(), location.getLongitude()));
+            }
+            CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude()));
+            CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
             gMap.moveCamera(center);
             gMap.animateCamera(zoom);
         }
@@ -117,6 +128,23 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
     }
 
+    @OnClick({R.id.main_view_toggle_details})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.main_view_toggle_details:
+                if (toggleMenu.equals(false)) {
+                    detailsView.setVisibility(View.VISIBLE);
+                    toggleDetailsView.setBackground(getResources().getDrawable(R.drawable.ic_arrow_drop_down_black_24dp));
+                    toggleMenu = true;
+                } else {
+                    detailsView.setVisibility(View.GONE);
+                    toggleDetailsView.setBackground(getResources().getDrawable(R.drawable.ic_arrow_drop_up_black_24dp));
+                    toggleMenu = false;
+                }
+                break;
+        }
+    }
+
     @Override
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -132,13 +160,15 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_find_near) {
+            ChoosePopup choosePopup = new ChoosePopup(MainActivity.this);
+            choosePopup.init();
+            choosePopup.showPopup();
+        } else if (id == R.id.nav_find) {
 
-        } else if (id == R.id.nav_share) {
+        } else if (id == R.id.nav_profile) {
 
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_logout) {
 
         }
 
