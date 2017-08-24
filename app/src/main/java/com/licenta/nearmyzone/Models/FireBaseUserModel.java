@@ -9,6 +9,7 @@ public class FireBaseUserModel {
     private String username = "";
     private String email = "";
     private String password = "";
+    private String userPhotoUrl = "";
 
     public String getUsername() {
         return username;
@@ -32,5 +33,13 @@ public class FireBaseUserModel {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getUserPhotoUrl() {
+        return userPhotoUrl;
+    }
+
+    public void setUserPhotoUrl(String userPhotoUrl) {
+        this.userPhotoUrl = userPhotoUrl;
     }
 }

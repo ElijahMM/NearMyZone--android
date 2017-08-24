@@ -12,7 +12,7 @@ public class User {
     }
 
     private FireBaseUserModel userModel = new FireBaseUserModel();
-    private String userPhotoUrl = "";
+
     private User() {
     }
 
@@ -24,11 +24,5 @@ public class User {
         this.userModel = userModel;
     }
 
-    public String getUserPhotoUrl() {
-        return userPhotoUrl;
-    }
 
-    public void setUserPhotoUrl(String userPhotoUrl) {
-        this.userPhotoUrl = userPhotoUrl;
-    }
 }

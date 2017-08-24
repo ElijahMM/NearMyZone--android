@@ -89,19 +89,18 @@ public class RegisterActivity extends AppCompatActivity {
     private void registerUser(String email, String password) {
         final LoadingDialog loadingDialog = new LoadingDialog(RegisterActivity.this,"Creating user");
         loadingDialog.showLoadingDialog();
-        auth.createUserWithEmailAndPassword(email, password)
+        auth.createUserWithEmailAndPassword(email, Util.sha1Hash(password))
                 .addOnCompleteListener(RegisterActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        FirebaseUser firebaseUser = task.getResult().getUser();
+                        final FirebaseUser firebaseUser = task.getResult().getUser();
                         if (!task.isSuccessful()) {
                             Toast.makeText(RegisterActivity.this, "Authentication failed." + task.getException(),
                                     Toast.LENGTH_SHORT).show();
                         } else {
-                            DatabaseReference dref = FirebaseDatabase.getInstance().getReference("users");
+                            final DatabaseReference dref = FirebaseDatabase.getInstance().getReference("users");
                             File file = new File(UploadPhoto.getPicturePathEdited());
                             StorageReference sRef = FirebaseStorage.getInstance().getReference("profilePicture/" + firebaseUser.getUid());
-                            dref.child(firebaseUser.getUid()).setValue(User.getInstance().getUserModel());
                             try {
                                 InputStream stream = new FileInputStream(file);
                                 UploadTask uploadTask = sRef.putStream(stream);
@@ -113,18 +112,18 @@ public class RegisterActivity extends AppCompatActivity {
                                 }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                     @Override
                                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                                        User.getInstance().setUserPhotoUrl(downloadUrl.toString());
+                                        User.getInstance().getUserModel().setUserPhotoUrl(downloadUrl.toString());
+                                        dref.child(firebaseUser.getUid()).setValue(User.getInstance().getUserModel());
+                                        loadingDialog.dismissLoadingDialog();
+                                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                                        finish();
                                         Log.w("UploadPhoto","Success");
                                     }
                                 });
                             } catch (FileNotFoundException e) {
                                 e.printStackTrace();
                             }
-                            loadingDialog.dismissLoadingDialog();
-                            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                            finish();
                         }
                     }
                 });

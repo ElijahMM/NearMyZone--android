@@ -51,10 +51,11 @@
         app:layout_constraintTop_toTopOf="@+id/login_activity_guideline">
 
         <EditText
-            android:id="@+id/login_activity_username_text"
+            android:id="@+id/login_activity_email_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Username"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
             android:singleLine="true" />
     </android.support.design.widget.TextInputLayout>
 

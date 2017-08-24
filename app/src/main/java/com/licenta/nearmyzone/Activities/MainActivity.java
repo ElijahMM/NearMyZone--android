@@ -16,7 +16,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,9 +28,12 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.licenta.nearmyzone.CustomView.ChoosePopup;
 import com.licenta.nearmyzone.CustomView.SearchPopup;
 import com.licenta.nearmyzone.Handlers.GPSLocation;
+import com.licenta.nearmyzone.Handlers.OfflineHandler;
+import com.licenta.nearmyzone.Models.User;
 import com.licenta.nearmyzone.R;
 import com.licenta.nearmyzone.Utils.Util;
 
@@ -48,6 +53,7 @@ public class MainActivity extends AppCompatActivity
     RelativeLayout detailsView;
     @BindView(R.id.main_view_toggle_details_imageView)
     ImageView toggleDetailsView;
+
 
     private GPSLocation gpsLocation;
     private GoogleMap gMap;
@@ -71,6 +77,12 @@ public class MainActivity extends AppCompatActivity
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
+        TextView navUserName = (TextView) header.findViewById(R.id.main_activity_nav_profile_name);
+        ImageView navUserPicture  = (ImageView) header.findViewById(R.id.main_activity_nav_profile_picture);;
+        Glide.with(MainActivity.this).load(User.getInstance().getUserModel().getUserPhotoUrl()).into(navUserPicture);
+        navUserName.setText(User.getInstance().getUserModel().getUsername());
     }
 
     @Override
@@ -177,6 +189,10 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_profile) {
             Util.openActivity(MainActivity.this,ProfileActivity.class);
         } else if (id == R.id.nav_logout) {
+            OfflineHandler.getInstance().deleteEmail();
+            OfflineHandler.getInstance().deletePassword();
+            FirebaseAuth.getInstance().signOut();
+            Util.openActivityClosingStack(MainActivity.this,LoginActivity.class);
         }
 
         drawer.closeDrawer(GravityCompat.START);
