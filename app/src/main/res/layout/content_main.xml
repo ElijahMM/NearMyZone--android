@@ -19,22 +19,42 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/main_view_status_text"
+    <RelativeLayout
+        android:id="@+id/main_view_weather_text"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="75dp"
+        android:visibility="gone"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/round_countainer"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/weather_image"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="16dp"
+            android:src="@drawable/gen_image"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/weather_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_toRightOf="@id/weather_image"
+            android:gravity="center" />
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/main_view_details"
         android:layout_width="0dp"
-        android:layout_height="100dp"
+        android:layout_height="0dp"
         android:background="@drawable/rectangle"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -45,7 +65,6 @@
         android:id="@+id/main_view_toggle_details"
         android:layout_width="80dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="-2dp"
         android:background="@drawable/semi_circle"
         android:padding="5dp"
         app:layout_constraintBottom_toTopOf="@+id/main_view_details"

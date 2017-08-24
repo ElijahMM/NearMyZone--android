@@ -12,12 +12,17 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -34,8 +39,14 @@ import com.licenta.nearmyzone.CustomView.SearchPopup;
 import com.licenta.nearmyzone.Handlers.GPSLocation;
 import com.licenta.nearmyzone.Handlers.OfflineHandler;
 import com.licenta.nearmyzone.Models.User;
+import com.licenta.nearmyzone.Models.WeatherResponse;
+import com.licenta.nearmyzone.Network.AddressRequest;
+import com.licenta.nearmyzone.Network.PlacesRequest;
 import com.licenta.nearmyzone.R;
 import com.licenta.nearmyzone.Utils.Util;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -53,7 +64,12 @@ public class MainActivity extends AppCompatActivity
     RelativeLayout detailsView;
     @BindView(R.id.main_view_toggle_details_imageView)
     ImageView toggleDetailsView;
-
+    @BindView(R.id.weather_image)
+    ImageView weatherImageView;
+    @BindView(R.id.weather_text)
+    TextView weatherTextView;
+    @BindView(R.id.main_view_weather_text)
+    RelativeLayout weatherView;
 
     private GPSLocation gpsLocation;
     private GoogleMap gMap;
@@ -78,11 +94,18 @@ public class MainActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         navigationView.setNavigationItemSelectedListener(this);
+        populateView();
+
+
+    }
+
+    private void populateView() {
         View header = navigationView.getHeaderView(0);
         TextView navUserName = (TextView) header.findViewById(R.id.main_activity_nav_profile_name);
-        ImageView navUserPicture  = (ImageView) header.findViewById(R.id.main_activity_nav_profile_picture);;
+        ImageView navUserPicture = (ImageView) header.findViewById(R.id.main_activity_nav_profile_picture);
         Glide.with(MainActivity.this).load(User.getInstance().getUserModel().getUserPhotoUrl()).into(navUserPicture);
         navUserName.setText(User.getInstance().getUserModel().getUsername());
+
     }
 
     @Override
@@ -116,8 +139,85 @@ public class MainActivity extends AppCompatActivity
             CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
             gMap.moveCamera(center);
             gMap.animateCamera(zoom);
+
+            getWeather(location);
+            AddressRequest addressRequest = new AddressRequest();
+            addressRequest.getAddress(MainActivity.this, location, addressResult);
+            PlacesRequest placesRequest = new PlacesRequest();
+            placesRequest.getPlaces(MainActivity.this, location, placeResult);
         }
     };
+
+    AddressRequest.AddressResult addressResult = new AddressRequest.AddressResult() {
+        @Override
+        public void gotAddress(String s) {
+            Log.w("GotAddress", s);
+            toolbar.setTitle(s);
+        }
+    };
+
+    PlacesRequest.PlaceResult placeResult = new PlacesRequest.PlaceResult() {
+        @Override
+        public void gotPlaces() {
+
+        }
+    };
+
+    private void getWeather(Location location) {
+        String url = "http://api.worldweatheronline.com/premium/v1/weather.ashx?" +
+                "key=" + getResources().getString(R.string.weather_api_key) +
+                "&q=" + location.getLatitude() + "," + location.getLongitude() +
+                "&format=json";
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, url,
+                new com.android.volley.Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            WeatherResponse weatherResponse = parseWeather(response.getJSONObject("data"));
+                            if (weatherResponse != null) {
+                                Util.showObjectLog(weatherResponse);
+                                Glide.with(MainActivity.this).load(weatherResponse.getWeatherIconUrl()).into(weatherImageView);
+                                String weatherCond = "It's " + weatherResponse.getWeatherDesc() + " outside" +
+                                        ", temperature " + weatherResponse.getTemp_C() +
+                                        ", feels like " + weatherResponse.getFeelsLikeC() +
+                                        ", wind " + weatherResponse.getWindspeedKmph() +
+                                        ", humidity " + weatherResponse.getHumidity();
+                                weatherTextView.setText(weatherCond);
+                                weatherView.setVisibility(View.VISIBLE);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }
+        );
+        Volley.newRequestQueue(this).add(jsObjRequest);
+    }
+
+    private WeatherResponse parseWeather(JSONObject jsonObject) {
+        WeatherResponse weatherResponse = new WeatherResponse();
+        try {
+            if (jsonObject.has("current_condition")) {
+                JSONObject jsonObject1 = jsonObject.getJSONArray("current_condition").getJSONObject(0);
+                weatherResponse.setTemp_C(jsonObject1.getInt("temp_C"));
+                weatherResponse.setWeatherIconUrl(jsonObject1.getJSONArray("weatherIconUrl").getJSONObject(0).getString("value"));
+                weatherResponse.setWeatherDesc(jsonObject1.getJSONArray("weatherDesc").getJSONObject(0).getString("value"));
+                weatherResponse.setWindspeedKmph(jsonObject1.getString("windspeedKmph"));
+                weatherResponse.setHumidity(jsonObject1.getString("humidity"));
+                weatherResponse.setFeelsLikeC(jsonObject1.getString("FeelsLikeC"));
+                return weatherResponse;
+            }
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 
     private void openDialogForLocation() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
@@ -187,19 +287,19 @@ public class MainActivity extends AppCompatActivity
             });
             searchPopup.showPopup();
         } else if (id == R.id.nav_profile) {
-            Util.openActivity(MainActivity.this,ProfileActivity.class);
+            Util.openActivity(MainActivity.this, ProfileActivity.class);
         } else if (id == R.id.nav_logout) {
             OfflineHandler.getInstance().deleteEmail();
             OfflineHandler.getInstance().deletePassword();
             FirebaseAuth.getInstance().signOut();
-            Util.openActivityClosingStack(MainActivity.this,LoginActivity.class);
+            Util.openActivityClosingStack(MainActivity.this, LoginActivity.class);
         }
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    private void initChosePopupListeners(ChoosePopup choosePopup){
+    private void initChosePopupListeners(ChoosePopup choosePopup) {
         choosePopup.setBusClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -225,6 +325,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

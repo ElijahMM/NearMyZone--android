@@ -87,7 +87,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser(String email, String password) {
-        final LoadingDialog loadingDialog = new LoadingDialog(RegisterActivity.this,"Creating user");
+        final LoadingDialog loadingDialog = new LoadingDialog(RegisterActivity.this, "Creating user");
         loadingDialog.showLoadingDialog();
         auth.createUserWithEmailAndPassword(email, Util.sha1Hash(password))
                 .addOnCompleteListener(RegisterActivity.this, new OnCompleteListener<AuthResult>() {
@@ -107,7 +107,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 uploadTask.addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception exception) {
-                                       Log.w("UploadPhoto","Failure");
+                                        Log.w("UploadPhoto", "Failure");
                                     }
                                 }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                     @Override
@@ -116,9 +116,8 @@ public class RegisterActivity extends AppCompatActivity {
                                         User.getInstance().getUserModel().setUserPhotoUrl(downloadUrl.toString());
                                         dref.child(firebaseUser.getUid()).setValue(User.getInstance().getUserModel());
                                         loadingDialog.dismissLoadingDialog();
-                                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                                        finish();
-                                        Log.w("UploadPhoto","Success");
+                                        Util.openActivityClosingStack(RegisterActivity.this, MainActivity.class);
+                                        Log.w("UploadPhoto", "Success");
                                     }
                                 });
                             } catch (FileNotFoundException e) {

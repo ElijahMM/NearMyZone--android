@@ -6,5 +6,5 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-
+    <string name="weather_api_key">7af934f04ad14eb6886125057172408</string>
 </resources>

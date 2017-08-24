@@ -96,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                                             OfflineHandler.getInstance().storeEmail(emialEditText.getText().toString());
                                             OfflineHandler.getInstance().storePassword(passwordEditText.getText().toString());
                                             loadingDialog.dismissLoadingDialog();
-                                            Util.openActivityClosingParent(LoginActivity.this, MainActivity.class);
+                                            Util.openActivityClosingStack(LoginActivity.this, MainActivity.class);
                                         }
                                     }
                                 }
@@ -114,7 +114,7 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-
+                        loadingDialog.dismissLoadingDialog();
                     }
                 });
     }
