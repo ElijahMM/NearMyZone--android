@@ -107,7 +107,9 @@ public class LoginActivity extends AppCompatActivity {
                                 }
                             });
                         } catch (Exception ex) {
+                            ex.printStackTrace();
                             Util.showShortToast(LoginActivity.this, "Invalid email or password");
+                            loadingDialog.dismissLoadingDialog();
                         }
                     }
                 })

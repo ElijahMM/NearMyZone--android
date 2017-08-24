@@ -288,22 +288,22 @@ public class Util {
     }
 
     public static String sha1Hash(String toHash) {
-        String hash = null;
-        if (toHash != null && !toHash.isEmpty()) {
-            try {
-                MessageDigest digest = MessageDigest.getInstance("SHA-1");
-                byte[] bytes = toHash.getBytes("UTF-8");
-                digest.update(bytes, 0, bytes.length);
-                bytes = digest.digest();
-
-                // This is ~55x faster than looping and String.formating()
-                hash = bytesToHex(bytes);
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
-        return hash;
+//        String hash = null;
+//        if (toHash != null && !toHash.isEmpty()) {
+//            try {
+//                MessageDigest digest = MessageDigest.getInstance("SHA-1");
+//                byte[] bytes = toHash.getBytes("UTF-8");
+//                digest.update(bytes, 0, bytes.length);
+//                bytes = digest.digest();
+//
+//                // This is ~55x faster than looping and String.formating()
+//                hash = bytesToHex(bytes);
+//            } catch (NoSuchAlgorithmException e) {
+//                e.printStackTrace();
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+//        }
+        return toHash;
     }
 }
