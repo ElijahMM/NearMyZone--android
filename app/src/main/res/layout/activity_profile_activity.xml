@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.licenta.nearmyzone.Activities.ProfileAcitivity">
+    tools:context="com.licenta.nearmyzone.Activities.ProfileActivity">
 
 
     <ScrollView
@@ -24,20 +24,20 @@
                 android:id="@+id/profile_activity_imageUser"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
+                android:layout_marginTop="32dp"
                 android:src="@drawable/register_image"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginTop="32dp" />
+                app:layout_constraintTop_toTopOf="parent" />
 
 
             <android.support.design.widget.TextInputLayout
                 android:id="@+id/profile_activity_tinputUsername"
-                android:layout_marginTop="8dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 app:errorEnabled="true"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -56,23 +56,23 @@
 
             <android.support.design.widget.TextInputLayout
                 android:id="@+id/profile_activity_tinputOldPassword"
-                android:layout_marginTop="8dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 app:errorEnabled="true"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputUsername">
 
                 <EditText
-                    android:id="@+id/profile_activity_mail_text"
+                    android:id="@+id/profile_activity_oldpassword_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Old Password"
-                    android:singleLine="true"
                     android:inputType="textPassword"
+                    android:singleLine="true"
                     tools:layout_editor_absoluteX="8dp"
                     tools:layout_editor_absoluteY="144dp" />
             </android.support.design.widget.TextInputLayout>
@@ -80,11 +80,11 @@
 
             <android.support.design.widget.TextInputLayout
                 android:id="@+id/profile_activity_tinputNewPassword"
-                android:layout_marginTop="8dp"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
                 app:errorEnabled="true"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -122,23 +122,44 @@
                     android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
 
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/profile_activity_tinputDistance"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                app:errorEnabled="true"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputConfirmNewPassword">
+
+                <EditText
+                    android:id="@+id/profile_activity_distance_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Distance"
+                    android:inputType="number"
+                    android:singleLine="true" />
+            </android.support.design.widget.TextInputLayout>
+
 
             <Button
                 android:id="@+id/profile_activity_login_button"
-                android:layout_marginTop="8dp"
                 android:layout_width="245dp"
                 android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="32dp"
                 android:background="@drawable/round_button"
-                android:text="Save changes"
                 android:orientation="vertical"
+                android:text="Save changes"
                 android:textColor="@color/primaryText"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_bias="0.50"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputConfirmNewPassword"
+                app:layout_constraintTop_toBottomOf="@+id/profile_activity_tinputDistance"
                 app:layout_constraintVertical_bias="0.50" />
-
 
             <android.support.constraint.Guideline
                 android:id="@+id/profile_activity_guideline"
@@ -152,7 +173,6 @@
         </android.support.constraint.ConstraintLayout>
 
     </ScrollView>
-
 
 
 </android.support.constraint.ConstraintLayout>
