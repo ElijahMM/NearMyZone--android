@@ -159,7 +159,9 @@ public class RegisterActivity extends AppCompatActivity {
         User.getInstance().getUserModel().setEmail(mailEditText.getText().toString());
         User.getInstance().getUserModel().setUsername(userNameEditText.getText().toString());
         User.getInstance().getUserModel().setPassword(passwordEditText.getText().toString());
+        User.getInstance().getUserModel().setDistance(20);
         registerUser(mailEditText.getText().toString(), passwordEditText.getText().toString());
+
 
     }
 

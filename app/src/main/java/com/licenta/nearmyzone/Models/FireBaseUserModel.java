@@ -10,6 +10,8 @@ public class FireBaseUserModel {
     private String email = "";
     private String password = "";
     private String userPhotoUrl = "";
+    private Integer distance=0;
+
 
     public String getUsername() {
         return username;
@@ -41,5 +43,13 @@ public class FireBaseUserModel {
 
     public void setUserPhotoUrl(String userPhotoUrl) {
         this.userPhotoUrl = userPhotoUrl;
+    }
+
+    public Integer getDistance() {
+        return distance;
+    }
+
+    public void setDistance(Integer distance) {
+        this.distance = distance;
     }
 }
