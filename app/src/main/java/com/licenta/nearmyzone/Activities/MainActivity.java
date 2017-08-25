@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity
     private List<Marker> originMarkers = new ArrayList<>();
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
+    private LatLng currentSelectedMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,17 +130,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap = googleMap;
-        try {
-            // Customise the styling of the base map using a JSON object defined
-            // in a raw resource file.
-            boolean success = googleMap.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                            this, R.raw.style_json));
-
-            if (!success) {
-            }
-        } catch (Resources.NotFoundException e) {
-        }
+        googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json));
         if (!Util.askGpsPermission(MainActivity.this)) {
             openDialogForLocation();
         } else {
@@ -171,12 +162,17 @@ public class MainActivity extends AppCompatActivity
             gMap.animateCamera(zoom);
 
             getWeather(location);
+
             AddressRequest addressRequest = new AddressRequest();
             addressRequest.getAddress(MainActivity.this, location, addressResult);
+
             PlacesRequest placesRequest = new PlacesRequest();
             placesRequest.getPlaces(MainActivity.this, location, placeResult);
-
-            setDirections(location);
+            if (currentSelectedMarker != null) {
+                setDirections(location);
+            } else {
+                retrieveNewRoute(location, currentSelectedMarker);
+            }
         }
     };
 
@@ -184,41 +180,46 @@ public class MainActivity extends AppCompatActivity
         gMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                try {
-                    new DirectionFinder(
-                            MainActivity.this,
-                            new LatLng(location.getLatitude(), location.getLongitude()),
-                            marker.getPosition(),
-                            "walking",
-                            new DirectionFinderListener() {
-                                @Override
-                                public void onDirectionFinderStart() {
-
-                                }
-
-                                @Override
-                                public void onDirectionFinderSuccess(List<Route> route) {
-                                    clearPolylinePath();
-
-                                    PolylineOptions polylineOptions = new PolylineOptions().
-                                            geodesic(true).
-                                            color(MainActivity.this.getResources().getColor(android.R.color.holo_red_dark)).
-                                            width(16);
-
-                                    if (!route.isEmpty()) {
-                                        for (int i = 0; i < route.get(0).points.size(); i++)
-                                            polylineOptions.add(route.get(0).points.get(i));
-                                    }
-
-                                    polylinePaths.add(gMap.addPolyline(polylineOptions));
-                                }
-                            }).execute();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                currentSelectedMarker = marker.getPosition();
+                retrieveNewRoute(location, currentSelectedMarker);
                 return false;
             }
         });
+    }
+
+    private void retrieveNewRoute(Location source, LatLng destination) {
+        try {
+            new DirectionFinder(
+                    MainActivity.this,
+                    new LatLng(source.getLatitude(), source.getLongitude()),
+                    destination,
+                    "walking",
+                    new DirectionFinderListener() {
+                        @Override
+                        public void onDirectionFinderStart() {
+
+                        }
+
+                        @Override
+                        public void onDirectionFinderSuccess(List<Route> route) {
+                            clearPolylinePath();
+
+                            PolylineOptions polylineOptions = new PolylineOptions().
+                                    geodesic(true).
+                                    color(MainActivity.this.getResources().getColor(android.R.color.holo_red_dark)).
+                                    width(16);
+
+                            if (!route.isEmpty()) {
+                                for (int i = 0; i < route.get(0).points.size(); i++)
+                                    polylineOptions.add(route.get(0).points.get(i));
+                            }
+
+                            polylinePaths.add(gMap.addPolyline(polylineOptions));
+                        }
+                    }).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void clearPolylinePath() {

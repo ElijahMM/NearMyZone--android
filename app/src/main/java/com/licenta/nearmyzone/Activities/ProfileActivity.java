@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -18,11 +17,18 @@ import android.widget.ImageView;
 import android.net.Uri;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.licenta.nearmyzone.CustomView.LoadingDialog;
+import com.licenta.nearmyzone.Handlers.OfflineHandler;
 import com.licenta.nearmyzone.Models.FireBaseUserModel;
 import com.licenta.nearmyzone.Utils.Util;
 import com.bumptech.glide.Glide;
@@ -32,8 +38,12 @@ import com.licenta.nearmyzone.Handlers.UploadPhoto;
 import com.licenta.nearmyzone.Models.User;
 import com.licenta.nearmyzone.R;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -123,7 +133,9 @@ public class ProfileActivity extends AppCompatActivity {
         if (!oldpasswordEditText.getText().toString().equals(User.getInstance().getUserModel().getPassword())) {
             oldpasswordLayout.setError("Invalid password!");
         }
-        updateFirebaseUser(Util.sha1Hash(newpasswordEditText.getText().toString()));
+        FireBaseUserModel fUser = new FireBaseUserModel();
+        // TODO: 08/25/2017 store new user and send it to server 
+        updateFireBaseUser(Util.sha1Hash(newpasswordEditText.getText().toString()));
 
     }
 
@@ -281,12 +293,13 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    public void updateFirebaseUser(final String password) {
-       final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    public void updateFireBaseUser(final String password) {
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         AuthCredential credential = EmailAuthProvider
                 .getCredential(User.getInstance().getUserModel().getEmail(),
                         Util.sha1Hash(User.getInstance().getUserModel().getPassword()));
-
+        final LoadingDialog loadingDialog = new LoadingDialog(ProfileActivity.this, "Saving...");
+        loadingDialog.showLoadingDialog();
         user.reauthenticate(credential)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -297,9 +310,33 @@ public class ProfileActivity extends AppCompatActivity {
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
                                         Log.d("Update password", "Password updated");
-                                        DatabaseReference databaseReference= FirebaseDatabase.getInstance().getReference();
-//                                        databaseReference.getDatabase().getReference("users").child(user.getUid())
-//                                                .setValue();
+                                        File file = new File(UploadPhoto.getPicturePathEdited());
+                                        final DatabaseReference dref = FirebaseDatabase.getInstance().getReference("users");
+                                        final StorageReference sRef = FirebaseStorage.getInstance().getReference("profilePicture/" + user.getUid());
+                                        try {
+                                            InputStream stream = new FileInputStream(file);
+                                            UploadTask uploadTask = sRef.putStream(stream);
+                                            uploadTask.addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception exception) {
+                                                    Log.w("UploadPhoto", "Failure");
+                                                    loadingDialog.dismissLoadingDialog();
+                                                }
+                                            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                @Override
+                                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                                                    User.getInstance().getUserModel().setUserPhotoUrl(downloadUrl.toString());
+                                                    dref.child(user.getUid()).setValue(User.getInstance().getUserModel());
+                                                    loadingDialog.dismissLoadingDialog();
+                                                    OfflineHandler.getInstance().deletePassword();
+                                                    OfflineHandler.getInstance().storePassword(Util.sha1Hash(password));
+                                                    Log.w("UploadPhoto", "Success");
+                                                }
+                                            });
+                                        } catch (FileNotFoundException e) {
+                                            e.printStackTrace();
+                                        }
                                     } else {
                                         Log.d("Error", "Error password not updated");
                                     }
