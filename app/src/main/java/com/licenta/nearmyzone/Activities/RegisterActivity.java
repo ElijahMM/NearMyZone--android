@@ -30,6 +30,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.licenta.nearmyzone.CustomView.LoadingDialog;
+import com.licenta.nearmyzone.Handlers.OfflineHandler;
 import com.licenta.nearmyzone.Handlers.UploadPhoto;
 import com.licenta.nearmyzone.Models.User;
 import com.licenta.nearmyzone.R;
@@ -86,7 +87,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     }
 
-    private void registerUser(String email, String password) {
+    private void registerUser(final String email, final String password) {
         final LoadingDialog loadingDialog = new LoadingDialog(RegisterActivity.this, "Creating user");
         loadingDialog.showLoadingDialog();
         auth.createUserWithEmailAndPassword(email, Util.sha1Hash(password))
@@ -116,6 +117,8 @@ public class RegisterActivity extends AppCompatActivity {
                                         User.getInstance().getUserModel().setUserPhotoUrl(downloadUrl.toString());
                                         dref.child(firebaseUser.getUid()).setValue(User.getInstance().getUserModel());
                                         loadingDialog.dismissLoadingDialog();
+                                        OfflineHandler.getInstance().storeEmail(email);
+                                        OfflineHandler.getInstance().storePassword(Util.sha1Hash(password));
                                         Util.openActivityClosingStack(RegisterActivity.this, MainActivity.class);
                                         Log.w("UploadPhoto", "Success");
                                     }

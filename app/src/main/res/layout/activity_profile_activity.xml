@@ -6,6 +6,26 @@
     android:layout_height="match_parent"
     tools:context="com.licenta.nearmyzone.Activities.ProfileActivity">
 
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/profile_appBarLayout"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="0dp">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/login_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title="Profile" />
+
+    </android.support.design.widget.AppBarLayout>
 
     <ScrollView
         android:layout_width="0dp"
@@ -14,7 +34,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/profile_appBarLayout">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -22,8 +42,8 @@
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/profile_activity_imageUser"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
                 android:layout_marginTop="32dp"
                 android:src="@drawable/register_image"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -148,8 +168,8 @@
                 android:id="@+id/profile_activity_login_button"
                 android:layout_width="245dp"
                 android:layout_height="48dp"
-                android:layout_marginTop="8dp"
                 android:layout_marginBottom="32dp"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/round_button"
                 android:orientation="vertical"
                 android:text="Save changes"

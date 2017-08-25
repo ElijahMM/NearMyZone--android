@@ -2,6 +2,8 @@ package com.licenta.nearmyzone.Activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -24,6 +26,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,13 +35,20 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.licenta.nearmyzone.CustomView.ChoosePopup;
 import com.licenta.nearmyzone.CustomView.SearchPopup;
+import com.licenta.nearmyzone.Handlers.DirectionFinder;
+import com.licenta.nearmyzone.Handlers.DirectionFinderListener;
 import com.licenta.nearmyzone.Handlers.GPSLocation;
 import com.licenta.nearmyzone.Handlers.OfflineHandler;
+import com.licenta.nearmyzone.Models.GooglePlace;
+import com.licenta.nearmyzone.Models.GDirection.Route;
 import com.licenta.nearmyzone.Models.User;
 import com.licenta.nearmyzone.Models.WeatherResponse;
 import com.licenta.nearmyzone.Network.AddressRequest;
@@ -47,6 +58,10 @@ import com.licenta.nearmyzone.Utils.Util;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -75,6 +90,9 @@ public class MainActivity extends AppCompatActivity
     private GoogleMap gMap;
     private Boolean toggleMenu = false;
     private Marker myMarker = null;
+    private List<Marker> originMarkers = new ArrayList<>();
+    private List<Marker> destinationMarkers = new ArrayList<>();
+    private List<Polyline> polylinePaths = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,11 +129,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap = googleMap;
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
+
+            if (!success) {
+            }
+        } catch (Resources.NotFoundException e) {
+        }
         if (!Util.askGpsPermission(MainActivity.this)) {
             openDialogForLocation();
         } else {
             startLocationUpdate();
         }
+
     }
 
     public void startLocationUpdate() {
@@ -125,7 +155,7 @@ public class MainActivity extends AppCompatActivity
 
     private GPSLocation.LocationResult locationResult = new GPSLocation.LocationResult() {
         @Override
-        public void gotLocation(Location location) {
+        public void gotLocation(final Location location) {
             if (myMarker == null) {
                 myMarker = gMap.addMarker(new MarkerOptions()
                         .position(new LatLng(location.getLatitude(), location.getLongitude()))
@@ -145,8 +175,65 @@ public class MainActivity extends AppCompatActivity
             addressRequest.getAddress(MainActivity.this, location, addressResult);
             PlacesRequest placesRequest = new PlacesRequest();
             placesRequest.getPlaces(MainActivity.this, location, placeResult);
+
+            setDirections(location);
         }
     };
+
+    private void setDirections(final Location location) {
+        gMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                try {
+                    new DirectionFinder(
+                            MainActivity.this,
+                            new LatLng(location.getLatitude(), location.getLongitude()),
+                            marker.getPosition(),
+                            "walking",
+                            new DirectionFinderListener() {
+                                @Override
+                                public void onDirectionFinderStart() {
+
+                                }
+
+                                @Override
+                                public void onDirectionFinderSuccess(List<Route> route) {
+                                    clearPolylinePath();
+
+                                    PolylineOptions polylineOptions = new PolylineOptions().
+                                            geodesic(true).
+                                            color(MainActivity.this.getResources().getColor(android.R.color.holo_red_dark)).
+                                            width(16);
+
+                                    if (!route.isEmpty()) {
+                                        for (int i = 0; i < route.get(0).points.size(); i++)
+                                            polylineOptions.add(route.get(0).points.get(i));
+                                    }
+
+                                    polylinePaths.add(gMap.addPolyline(polylineOptions));
+                                }
+                            }).execute();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return false;
+            }
+        });
+    }
+
+    private void clearPolylinePath() {
+        if (polylinePaths != null) {
+            Log.w("Polyline", "Polyline Remove");
+            for (Polyline polyline : polylinePaths) {
+                polyline.remove();
+            }
+        }
+        if (polylinePaths != null) {
+            polylinePaths.clear();
+        }
+        originMarkers.clear();
+        destinationMarkers.clear();
+    }
 
     AddressRequest.AddressResult addressResult = new AddressRequest.AddressResult() {
         @Override
@@ -158,8 +245,23 @@ public class MainActivity extends AppCompatActivity
 
     PlacesRequest.PlaceResult placeResult = new PlacesRequest.PlaceResult() {
         @Override
-        public void gotPlaces() {
+        public void gotPlaces(List<GooglePlace> googlePlaces) {
+            Util.showObjectLog(googlePlaces);
+            for (final GooglePlace googlePlace : googlePlaces) {
+                Glide.with(MainActivity.this)
+                        .asBitmap()
+                        .load(googlePlace.getIcon())
+                        .into(new SimpleTarget<Bitmap>() {
+                            @Override
+                            public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+                                gMap.addMarker(new MarkerOptions()
+                                        .position(new LatLng(googlePlace.getLocation().getLat(), googlePlace.getLocation().getLon()))
+                                        .icon(BitmapDescriptorFactory.fromBitmap(resource))
+                                        .title(googlePlace.getName()));
+                            }
+                        });
 
+            }
         }
     };
 
@@ -333,4 +435,5 @@ public class MainActivity extends AppCompatActivity
             startLocationUpdate();
         }
     }
+
 }
