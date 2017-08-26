@@ -2,11 +2,11 @@ package com.licenta.nearmyzone.Activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -22,12 +22,19 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.android.volley.Request;
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -42,7 +49,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.licenta.nearmyzone.CustomView.ChoosePopup;
-import com.licenta.nearmyzone.CustomView.SearchPopup;
 import com.licenta.nearmyzone.Handlers.DirectionFinder;
 import com.licenta.nearmyzone.Handlers.DirectionFinderListener;
 import com.licenta.nearmyzone.Handlers.GPSLocation;
@@ -69,6 +75,10 @@ import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+
+    private static final String API_KEY = "AIzaSyDuv0seZBjZeAnGenZw2QaH81_y3M-D-ao";
+    private static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 222;
+
     @BindView(R.id.main_toolbar)
     Toolbar toolbar;
     @BindView(R.id.nav_view)
@@ -86,14 +96,27 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.main_view_weather_text)
     RelativeLayout weatherView;
 
+    @BindView(R.id.main_view_details_image)
+    ImageView detailsImageView;
+    @BindView(R.id.main_view_details_title)
+    TextView detailsName;
+    @BindView(R.id.main_view_details_desc)
+    TextView detailsDescr;
+    @BindView(R.id.main_view_details_rev)
+    TextView detailsRev;
+    @BindView(R.id.main_view_direction)
+    FloatingActionButton getDirectionsFAB;
+
     private GPSLocation gpsLocation;
     private GoogleMap gMap;
     private Boolean toggleMenu = false;
     private Marker myMarker = null;
+    private List<GooglePlace> googlePlaceList;
     private List<Marker> originMarkers = new ArrayList<>();
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
     private LatLng currentSelectedMarker;
+    private Location myLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,7 +137,13 @@ public class MainActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);
         navigationView.setNavigationItemSelectedListener(this);
         populateView();
+        getDirectionsFAB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                retrieveNewRoute(myLocation, currentSelectedMarker);
 
+            }
+        });
 
     }
 
@@ -136,7 +165,32 @@ public class MainActivity extends AppCompatActivity
         } else {
             startLocationUpdate();
         }
-
+        gMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                getDirectionsFAB.setVisibility(View.VISIBLE);
+                detailsView.setVisibility(View.VISIBLE);
+                toggleDetailsView.setBackground(getResources().getDrawable(R.drawable.ic_arrow_drop_down_black_24dp));
+                toggleMenu = true;
+                String pId = GooglePlace.getPlaceID(googlePlaceList, marker.getPosition());
+                if (pId != null) {
+                    getPlaceDetails(pId);
+                }
+                currentSelectedMarker = marker.getPosition();
+                return false;
+            }
+        });
+        gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                getDirectionsFAB.setVisibility(View.GONE);
+                detailsView.setVisibility(View.GONE);
+                toggleDetailsView.setBackground(getResources().getDrawable(R.drawable.ic_arrow_drop_up_black_24dp));
+                toggleMenu = false;
+                currentSelectedMarker = null;
+                clearPolylinePath();
+            }
+        });
     }
 
     public void startLocationUpdate() {
@@ -168,24 +222,12 @@ public class MainActivity extends AppCompatActivity
 
             PlacesRequest placesRequest = new PlacesRequest();
             placesRequest.getPlaces(MainActivity.this, location, placeResult);
+            myLocation = location;
             if (currentSelectedMarker != null) {
-                setDirections(location);
-            } else {
                 retrieveNewRoute(location, currentSelectedMarker);
             }
         }
     };
-
-    private void setDirections(final Location location) {
-        gMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                currentSelectedMarker = marker.getPosition();
-                retrieveNewRoute(location, currentSelectedMarker);
-                return false;
-            }
-        });
-    }
 
     private void retrieveNewRoute(Location source, LatLng destination) {
         try {
@@ -197,7 +239,6 @@ public class MainActivity extends AppCompatActivity
                     new DirectionFinderListener() {
                         @Override
                         public void onDirectionFinderStart() {
-
                         }
 
                         @Override
@@ -247,7 +288,7 @@ public class MainActivity extends AppCompatActivity
     PlacesRequest.PlaceResult placeResult = new PlacesRequest.PlaceResult() {
         @Override
         public void gotPlaces(List<GooglePlace> googlePlaces) {
-            Util.showObjectLog(googlePlaces);
+            googlePlaceList = googlePlaces;
             for (final GooglePlace googlePlace : googlePlaces) {
                 Glide.with(MainActivity.this)
                         .asBitmap()
@@ -258,7 +299,8 @@ public class MainActivity extends AppCompatActivity
                                 gMap.addMarker(new MarkerOptions()
                                         .position(new LatLng(googlePlace.getLocation().getLat(), googlePlace.getLocation().getLon()))
                                         .icon(BitmapDescriptorFactory.fromBitmap(resource))
-                                        .title(googlePlace.getName()));
+                                        .title(googlePlace.getName())
+                                );
                             }
                         });
 
@@ -303,6 +345,52 @@ public class MainActivity extends AppCompatActivity
         Volley.newRequestQueue(this).add(jsObjRequest);
     }
 
+    private void getPlaceDetails(String placeID) {
+        String url = "https://maps.googleapis.com/maps/api/place/details/json?" +
+                "placeid=" + placeID +
+                "&key=" + API_KEY;
+        Log.w("Url", url);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Util.showObjectLog(response);
+                        try {
+                            if (response.has("result")) {
+                                JSONObject jsonObject = response.getJSONObject("result");
+                                if (jsonObject.has("name")) {
+                                    detailsName.setText(jsonObject.getString("name"));
+                                }
+                                if (jsonObject.has("reviews")) {
+                                    detailsDescr.setText(jsonObject.getJSONArray("reviews").getJSONObject(0).getString("text"));
+                                }
+                                if (jsonObject.has("rating")) {
+                                    detailsRev.setText("Rating " + jsonObject.getDouble("rating"));
+                                }
+                                if (jsonObject.has("photos")) {
+                                    String ref = jsonObject.getJSONArray("photos").getJSONObject(0).getString("photo_reference");
+                                    Glide.with(MainActivity.this)
+                                            .load("https://maps.googleapis.com/maps/api/place/photo?maxwidth=400" +
+                                                    "&photoreference=" + ref +
+                                                    "&key=" + API_KEY)
+                                            .into(detailsImageView);
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+        Volley.newRequestQueue(this).add(jsonObjectRequest);
+
+    }
+
     private WeatherResponse parseWeather(JSONObject jsonObject) {
         WeatherResponse weatherResponse = new WeatherResponse();
         try {
@@ -343,6 +431,24 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
     }
 
+    public void navMenuSearchPlace() {
+        try {
+            AutocompleteFilter filter =
+                    new AutocompleteFilter.Builder()
+                            .setCountry("RO")
+                            .build();
+            Intent intent =
+                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
+                            .setFilter(filter)
+                            .build(this);
+            startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+        } catch (GooglePlayServicesRepairableException e) {
+            // TODO: Handle the error.
+        } catch (GooglePlayServicesNotAvailableException e) {
+            // TODO: Handle the error.
+        }
+    }
+
     @OnClick({R.id.main_view_toggle_details})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -380,15 +486,7 @@ public class MainActivity extends AppCompatActivity
             initChosePopupListeners(choosePopup);
             choosePopup.showPopup();
         } else if (id == R.id.nav_find) {
-            SearchPopup searchPopup = new SearchPopup(MainActivity.this);
-            searchPopup.init();
-            searchPopup.setSearchClickListner(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                }
-            });
-            searchPopup.showPopup();
+            navMenuSearchPlace();
         } else if (id == R.id.nav_profile) {
             Util.openActivity(MainActivity.this, ProfileActivity.class);
         } else if (id == R.id.nav_logout) {
@@ -435,6 +533,20 @@ public class MainActivity extends AppCompatActivity
         if (requestCode == 111) {
             startLocationUpdate();
         }
-    }
+        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                detailsView.setVisibility(View.VISIBLE);
+                getDirectionsFAB.setVisibility(View.VISIBLE);
+                getPlaceDetails(place.getId());
+            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(this, data);
+                // TODO: Handle the error.
 
+            } else if (resultCode == RESULT_CANCELED) {
+                // The user canceled the operation.
+            }
+        }
+
+    }
 }

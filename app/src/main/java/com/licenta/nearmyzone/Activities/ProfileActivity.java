@@ -134,7 +134,7 @@ public class ProfileActivity extends AppCompatActivity {
             oldpasswordLayout.setError("Invalid password!");
         }
         FireBaseUserModel fUser = new FireBaseUserModel();
-        // TODO: 08/25/2017 store new user and send it to server 
+        // TODO: 08/25/2017 store new user and send it to server
         updateFireBaseUser(Util.sha1Hash(newpasswordEditText.getText().toString()));
 
     }

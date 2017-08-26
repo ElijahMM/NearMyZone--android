@@ -1,5 +1,7 @@
 package com.licenta.nearmyzone.Models;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.List;
 
 /**
@@ -11,7 +13,7 @@ public class GooglePlace {
     private String place_id = "";
     private String name = "";
     private String type = "";
-    private String icon ="";
+    private String icon = "";
     private GLocation location = new GLocation();
 
     public String getPlace_id() {
@@ -54,4 +56,12 @@ public class GooglePlace {
         this.location = location;
     }
 
+    public static String getPlaceID(List<GooglePlace> googlePlaces, LatLng location) {
+        for (GooglePlace googlePlace : googlePlaces) {
+            if (googlePlace.getLocation().getLat().equals(location.latitude) && googlePlace.getLocation().getLon().equals(location.longitude)) {
+                return googlePlace.getPlace_id();
+            }
+        }
+        return null;
+    }
 }
