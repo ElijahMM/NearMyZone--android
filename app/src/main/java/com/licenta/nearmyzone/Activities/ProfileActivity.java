@@ -130,13 +130,94 @@ public class ProfileActivity extends AppCompatActivity {
             distanceLayout.setError("No distance set");
             return;
         }
-        if (!oldpasswordEditText.getText().toString().equals(User.getInstance().getUserModel().getPassword())) {
+        if (!oldpasswordEditText.getText().toString().isEmpty() &&!oldpasswordEditText.getText().toString().equals(User.getInstance().getUserModel().getPassword())) {
             oldpasswordLayout.setError("Invalid password!");
         }
-        FireBaseUserModel fUser = new FireBaseUserModel();
-        // TODO: 08/25/2017 store new user and send it to server
-        updateFireBaseUser(Util.sha1Hash(newpasswordEditText.getText().toString()));
+        fireBaseUserModel.setUsername(userNameEditText.getText().toString());
+        fireBaseUserModel.setDistance(Integer.valueOf(distanceEditText.getText().toString()));
+        fireBaseUserModel.setEmail(User.getInstance().getUserModel().getEmail());
+        final LoadingDialog loadingDialog = new LoadingDialog(ProfileActivity.this, "Saving...");
+        loadingDialog.showLoadingDialog();
+        if (oldpasswordEditText.getText().toString().isEmpty() &&
+                newpasswordEditText.getText().toString().isEmpty() &&
+                confirmpasswordEditText.getText().toString().isEmpty()) {
+            updatePhotoTheDB(
+                    FirebaseAuth.getInstance().getCurrentUser(),
+                    loadingDialog,
+                    Util.sha1Hash(User.getInstance().getUserModel().getPassword()), fireBaseUserModel);
+        } else {
+            updateFireBaseUser(loadingDialog, Util.sha1Hash(newpasswordEditText.getText().toString()), fireBaseUserModel);
+        }
 
+    }
+
+    public void updateFireBaseUser(final LoadingDialog loadingDialog, final String password, final FireBaseUserModel fireBaseUserModel) {
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        AuthCredential credential = EmailAuthProvider
+                .getCredential(User.getInstance().getUserModel().getEmail(),
+                        Util.sha1Hash(User.getInstance().getUserModel().getPassword()));
+        user.reauthenticate(credential)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            user.updatePassword(Util.sha1Hash(password)).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d("Update password", "Password updated");
+                                        updatePhotoTheDB(user, loadingDialog, password, fireBaseUserModel);
+                                    } else {
+                                        Log.d("Error", "Error password not updated");
+                                    }
+                                }
+                            });
+                        } else {
+                            Log.d("Error", "Error auth failed");
+                        }
+                    }
+                });
+
+    }
+
+    private void updatePhotoTheDB(final FirebaseUser user, final LoadingDialog loadingDialog, final String password, final FireBaseUserModel fireBaseUserModel) {
+        final DatabaseReference dref = FirebaseDatabase.getInstance().getReference("users");
+        final StorageReference sRef = FirebaseStorage.getInstance().getReference("profilePicture/" + user.getUid());
+        File file = new File(UploadPhoto.getPicturePathEdited());
+        if (file.exists()) {
+            try {
+                InputStream stream = new FileInputStream(file);
+                UploadTask uploadTask = sRef.putStream(stream);
+                uploadTask.addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        Log.w("UploadPhoto", "Failure");
+                        loadingDialog.dismissLoadingDialog();
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        updateDB(downloadUrl.toString(), fireBaseUserModel, dref, user, loadingDialog, password);
+                        Log.w("UploadPhoto", "Success");
+                    }
+                });
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
+            updateDB(User.getInstance().getUserModel().getUserPhotoUrl(), fireBaseUserModel, dref, user, loadingDialog, password);
+        }
+    }
+
+    private void updateDB(String downloadUrl, FireBaseUserModel fireBaseUserModel, DatabaseReference dref, FirebaseUser user, LoadingDialog loadingDialog, String password) {
+        fireBaseUserModel.setUserPhotoUrl(downloadUrl);
+        fireBaseUserModel.setPassword(password);
+        dref.child(user.getUid()).setValue(fireBaseUserModel);
+        User.getInstance().setUserModel(fireBaseUserModel);
+        loadingDialog.dismissLoadingDialog();
+        OfflineHandler.getInstance().deletePassword();
+        OfflineHandler.getInstance().storePassword(Util.sha1Hash(password));
     }
 
     private void handleNewPhoto() {
@@ -280,7 +361,6 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
-
     @OnClick({R.id.profile_activity_login_button, R.id.profile_activity_imageUser})
     public void onClick(View view) {
         switch (view.getId()) {
@@ -293,62 +373,6 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    public void updateFireBaseUser(final String password) {
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        AuthCredential credential = EmailAuthProvider
-                .getCredential(User.getInstance().getUserModel().getEmail(),
-                        Util.sha1Hash(User.getInstance().getUserModel().getPassword()));
-        final LoadingDialog loadingDialog = new LoadingDialog(ProfileActivity.this, "Saving...");
-        loadingDialog.showLoadingDialog();
-        user.reauthenticate(credential)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            user.updatePassword(Util.sha1Hash(password)).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        Log.d("Update password", "Password updated");
-                                        File file = new File(UploadPhoto.getPicturePathEdited());
-                                        final DatabaseReference dref = FirebaseDatabase.getInstance().getReference("users");
-                                        final StorageReference sRef = FirebaseStorage.getInstance().getReference("profilePicture/" + user.getUid());
-                                        try {
-                                            InputStream stream = new FileInputStream(file);
-                                            UploadTask uploadTask = sRef.putStream(stream);
-                                            uploadTask.addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception exception) {
-                                                    Log.w("UploadPhoto", "Failure");
-                                                    loadingDialog.dismissLoadingDialog();
-                                                }
-                                            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                                @Override
-                                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                                                    User.getInstance().getUserModel().setUserPhotoUrl(downloadUrl.toString());
-                                                    dref.child(user.getUid()).setValue(User.getInstance().getUserModel());
-                                                    loadingDialog.dismissLoadingDialog();
-                                                    OfflineHandler.getInstance().deletePassword();
-                                                    OfflineHandler.getInstance().storePassword(Util.sha1Hash(password));
-                                                    Log.w("UploadPhoto", "Success");
-                                                }
-                                            });
-                                        } catch (FileNotFoundException e) {
-                                            e.printStackTrace();
-                                        }
-                                    } else {
-                                        Log.d("Error", "Error password not updated");
-                                    }
-                                }
-                            });
-                        } else {
-                            Log.d("Error", "Error auth failed");
-                        }
-                    }
-                });
-
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity
     private List<Polyline> polylinePaths = new ArrayList<>();
     private LatLng currentSelectedMarker;
     private Location myLocation;
+    private  PlacesRequest placesRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,7 +145,8 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-
+        googlePlaceList = new ArrayList<>();
+        placesRequest = new PlacesRequest();
     }
 
     private void populateView() {
@@ -220,7 +222,7 @@ public class MainActivity extends AppCompatActivity
             AddressRequest addressRequest = new AddressRequest();
             addressRequest.getAddress(MainActivity.this, location, addressResult);
 
-            PlacesRequest placesRequest = new PlacesRequest();
+
             placesRequest.getPlaces(MainActivity.this, location, placeResult);
             myLocation = location;
             if (currentSelectedMarker != null) {
@@ -288,25 +290,40 @@ public class MainActivity extends AppCompatActivity
     PlacesRequest.PlaceResult placeResult = new PlacesRequest.PlaceResult() {
         @Override
         public void gotPlaces(List<GooglePlace> googlePlaces) {
-            googlePlaceList = googlePlaces;
+            googlePlaceList.addAll(googlePlaces);
+            Util.showObjectLog(googlePlaces);
             for (final GooglePlace googlePlace : googlePlaces) {
-                Glide.with(MainActivity.this)
-                        .asBitmap()
-                        .load(googlePlace.getIcon())
-                        .into(new SimpleTarget<Bitmap>() {
-                            @Override
-                            public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
-                                gMap.addMarker(new MarkerOptions()
-                                        .position(new LatLng(googlePlace.getLocation().getLat(), googlePlace.getLocation().getLon()))
-                                        .icon(BitmapDescriptorFactory.fromBitmap(resource))
-                                        .title(googlePlace.getName())
-                                );
-                            }
-                        });
+
+                loadMap(googlePlace);
 
             }
         }
+
+        @Override
+        public void gotAdditionalPlaces(List<GooglePlace> googlePlaces) {
+            googlePlaceList.addAll(googlePlaces);
+            Util.showObjectLog(googlePlaces);
+            for (final GooglePlace googlePlace : googlePlaces) {
+                loadMap(googlePlace);
+            }
+        }
     };
+
+    private void loadMap(final GooglePlace googlePlace) {
+        Glide.with(MainActivity.this)
+                .asBitmap()
+                .load(googlePlace.getIcon())
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap resource, Transition<? super Bitmap> transition) {
+                        gMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(googlePlace.getLocation().getLat(), googlePlace.getLocation().getLon()))
+                                .icon(BitmapDescriptorFactory.fromBitmap(resource))
+                                .title(googlePlace.getName())
+                        );
+                    }
+                });
+    }
 
     private void getWeather(Location location) {
         String url = "http://api.worldweatheronline.com/premium/v1/weather.ashx?" +
