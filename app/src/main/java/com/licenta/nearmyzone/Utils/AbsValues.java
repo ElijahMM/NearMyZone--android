@@ -8,14 +8,15 @@ public class AbsValues {
 
     public static final Integer GPS_REQUEST_INTERVAL =60000;
 
-    private static final String electronics_store = "electronics_store";
-    private static final String restaurant = "restaurant";
-    private static final String car_repair = "car_repair";
-    private static final String florist = "florist";
-    private static final String shopping_mall = "shopping_mall";
-    private static final String atm = "atm";
-    private static final String hospital = "hospital";
-    private static final String meal_takeaway = "meal_takeaway";
-    private static final String grocery_or_supermarket = "grocery_or_supermarket";
-    private static final String lodging = "lodging";
+    public static final String electronics_store = "electronics_store";
+    public static final String restaurant = "restaurant";
+    public static final String car_repair = "car_repair";
+    public static final String florist = "florist";
+    public static final String shopping_mall = "shopping_mall";
+    public static final String atm = "atm";
+    public static final String hospital = "hospital";
+    public static final String bus_station = "bus_station";
+    public static final String meal_takeaway = "meal_takeaway";
+    public static final String grocery_or_supermarket = "grocery_or_supermarket";
+    public static final String lodging = "lodging";
 }

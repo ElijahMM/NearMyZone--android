@@ -60,6 +60,7 @@ import com.licenta.nearmyzone.Models.WeatherResponse;
 import com.licenta.nearmyzone.Network.AddressRequest;
 import com.licenta.nearmyzone.Network.PlacesRequest;
 import com.licenta.nearmyzone.R;
+import com.licenta.nearmyzone.Utils.AbsValues;
 import com.licenta.nearmyzone.Utils.Util;
 
 import org.json.JSONException;
@@ -117,7 +118,7 @@ public class MainActivity extends AppCompatActivity
     private List<Polyline> polylinePaths = new ArrayList<>();
     private LatLng currentSelectedMarker;
     private Location myLocation;
-    private  PlacesRequest placesRequest;
+    private PlacesRequest placesRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -224,6 +225,7 @@ public class MainActivity extends AppCompatActivity
 
 
             placesRequest.getPlaces(MainActivity.this, location, placeResult);
+            placesRequest.getBusPlaces(MainActivity.this, location, placeResult);
             myLocation = location;
             if (currentSelectedMarker != null) {
                 retrieveNewRoute(location, currentSelectedMarker);
@@ -307,6 +309,14 @@ public class MainActivity extends AppCompatActivity
                 loadMap(googlePlace);
             }
         }
+
+        @Override
+        public void gotBusPlaces(List<GooglePlace> googlePlaces) {
+            googlePlaceList.addAll(googlePlaces);
+            for (final GooglePlace googlePlace : googlePlaces) {
+                loadMap(googlePlace);
+            }
+        }
     };
 
     private void loadMap(final GooglePlace googlePlace) {
@@ -323,6 +333,45 @@ public class MainActivity extends AppCompatActivity
                         );
                     }
                 });
+    }
+
+    private void findNearPlace(String type) {
+        List<GooglePlace> placeList = new ArrayList<>();
+        for (GooglePlace googlePlace : googlePlaceList) {
+            if (googlePlace.getType().equals(type)) {
+                double dist = Util.distBetweenLatLng(
+                        new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),
+                        new LatLng(googlePlace.getLocation().getLat(), googlePlace.getLocation().getLon())
+                );
+                if (dist < User.getInstance().getUserModel().getDistance()) {
+                    placeList.add(googlePlace);
+
+                }
+            }
+        }
+        if(placeList.size()>0) {
+            GooglePlace nearPlace = placeList.get(0);
+            Util.showObjectLog(placeList);
+            for (GooglePlace googlePlace : placeList) {
+                double dist1 = Util.distBetweenLatLng(
+                        new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),
+                        new LatLng(googlePlace.getLocation().getLat(), googlePlace.getLocation().getLon())
+                );
+                double dist2 = Util.distBetweenLatLng(
+                        new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),
+                        new LatLng(nearPlace.getLocation().getLat(), nearPlace.getLocation().getLon())
+                );
+                if (dist1 < dist2) {
+                    nearPlace = googlePlace;
+                }
+            }
+            detailsView.setVisibility(View.VISIBLE);
+            getDirectionsFAB.setVisibility(View.VISIBLE);
+            getPlaceDetails(nearPlace.getPlace_id());
+            currentSelectedMarker = new LatLng(nearPlace.getLocation().getLat(),nearPlace.getLocation().getLon());
+        }else{
+            Util.showShortToast(MainActivity.this,"No place near you");
+        }
     }
 
     private void getWeather(Location location) {
@@ -429,7 +478,7 @@ public class MainActivity extends AppCompatActivity
 
     private void openDialogForLocation() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
-        dialog.setMessage("In order to get directions to Bizz Cafe you need to activate your phone location");
+        dialog.setMessage("In order to get directions you need to activate your phone location");
         dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -517,29 +566,33 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void initChosePopupListeners(ChoosePopup choosePopup) {
+    private void initChosePopupListeners(final ChoosePopup choosePopup) {
         choosePopup.setBusClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                findNearPlace(AbsValues.bus_station);
+                choosePopup.dismissDialog();
             }
         });
         choosePopup.setHotelClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                findNearPlace(AbsValues.hospital);
+                choosePopup.dismissDialog();
             }
         });
         choosePopup.setRestaurantClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                findNearPlace(AbsValues.restaurant);
+                choosePopup.dismissDialog();
             }
         });
-        choosePopup.setTrainClickListener(new View.OnClickListener() {
+        choosePopup.setAtmClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                findNearPlace(AbsValues.atm);
+                choosePopup.dismissDialog();
             }
         });
     }

@@ -45,7 +45,7 @@ public class ChoosePopup {
         busTextView.setOnClickListener(clickListener);
     }
 
-    public void setTrainClickListener(View.OnClickListener clickListener) {
+    public void setAtmClickListener(View.OnClickListener clickListener) {
         trainTextView.setOnClickListener(clickListener);
     }
 

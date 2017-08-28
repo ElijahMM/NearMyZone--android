@@ -9,6 +9,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
+        multiDexEnabled true
         versionName "1.0"
     }
     buildTypes {
@@ -39,6 +40,7 @@ dependencies {
     compile "com.google.firebase:firebase-auth:11.0.0"
 // https://mvnrepository.com/artifact/com.mcxiaoke.volley/library
     compile group: 'com.mcxiaoke.volley', name: 'library', version: '1.0.19'
+    compile 'com.android.support:multidex:1.0.0'
 
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
