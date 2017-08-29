@@ -15,6 +15,7 @@ public class AbsValues {
     public static final String shopping_mall = "shopping_mall";
     public static final String atm = "atm";
     public static final String hospital = "hospital";
+    public static final String hotel = "hotel";
     public static final String bus_station = "bus_station";
     public static final String meal_takeaway = "meal_takeaway";
     public static final String grocery_or_supermarket = "grocery_or_supermarket";

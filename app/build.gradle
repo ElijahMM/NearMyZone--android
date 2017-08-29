@@ -41,7 +41,7 @@ dependencies {
 // https://mvnrepository.com/artifact/com.mcxiaoke.volley/library
     compile group: 'com.mcxiaoke.volley', name: 'library', version: '1.0.19'
     compile 'com.android.support:multidex:1.0.0'
-
+    compile 'com.github.clans:fab:1.6.4'
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 }

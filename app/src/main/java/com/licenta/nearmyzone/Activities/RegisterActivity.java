@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -49,6 +50,9 @@ import butterknife.OnClick;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    @BindView(R.id.register_toolbar)
+    Toolbar toolbar;
+
     @BindView(R.id.register_activity_imageUser)
     ImageView userImage;
     @BindView(R.id.register_activity_username_text)
@@ -78,6 +82,15 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
         ButterKnife.bind(this);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         resetErrorFields();
         auth = FirebaseAuth.getInstance();
         uploadPhoto = new UploadPhoto();
@@ -162,7 +175,7 @@ public class RegisterActivity extends AppCompatActivity {
         User.getInstance().getUserModel().setEmail(mailEditText.getText().toString());
         User.getInstance().getUserModel().setUsername(userNameEditText.getText().toString());
         User.getInstance().getUserModel().setPassword(passwordEditText.getText().toString());
-        User.getInstance().getUserModel().setDistance(20);
+        User.getInstance().getUserModel().setDistance(2000);
         registerUser(mailEditText.getText().toString(), passwordEditText.getText().toString());
 
 

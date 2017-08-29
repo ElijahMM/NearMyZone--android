@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fab="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -97,18 +98,60 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_toRightOf="@id/main_view_details_image" />
+
+        <TextView
+            android:id="@+id/main_view_travel_time"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_below="@+id/main_view_details_rev"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_toRightOf="@id/main_view_details_image" />
     </RelativeLayout>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/main_view_direction"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_navigation_black_24dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@id/main_view_details"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:menu_buttonSpacing="4dp"
+        fab:menu_colorNormal="@color/colorPrimary"
+        fab:menu_colorPressed="@color/colorPrimaryDark"
+        fab:menu_icon="@drawable/ic_navigation_black_24dp">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/main_view_direction_walk"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_directions_walk_black_24dp"
+            fab:fab_colorNormal="@color/colorPrimary"
+            fab:fab_label="Menu item 1"
+            fab:fab_size="mini" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/main_view_direction_car"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_directions_car_black_24dp"
+            fab:fab_colorNormal="@color/colorPrimary"
+            fab:fab_label="Menu item 1"
+            fab:fab_size="mini" />
+    </com.github.clans.fab.FloatingActionMenu>
+
+    <ImageView
+        android:id="@+id/main_view_myLocation"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/ic_my_location_black_24dp"
+        app:layout_constraintBottom_toTopOf="@id/main_view_details"
+        app:layout_constraintLeft_toLeftOf="parent" />
 
     <RelativeLayout
         android:id="@+id/main_view_toggle_details"

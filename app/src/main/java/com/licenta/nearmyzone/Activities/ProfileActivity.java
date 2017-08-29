@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -51,7 +52,8 @@ import butterknife.OnClick;
 
 public class ProfileActivity extends AppCompatActivity {
 
-
+    @BindView(R.id.profile_toolbar)
+    Toolbar toolbar;
     @BindView(R.id.profile_activity_username_text)
     EditText userNameEditText;
     @BindView(R.id.profile_activity_oldpassword_text)
@@ -88,6 +90,15 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_activity);
         ButterKnife.bind(this);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         resetErrorFields();
         populateView();
         auth = FirebaseAuth.getInstance();
@@ -130,7 +141,7 @@ public class ProfileActivity extends AppCompatActivity {
             distanceLayout.setError("No distance set");
             return;
         }
-        if (!oldpasswordEditText.getText().toString().isEmpty() &&!oldpasswordEditText.getText().toString().equals(User.getInstance().getUserModel().getPassword())) {
+        if (!oldpasswordEditText.getText().toString().isEmpty() && !oldpasswordEditText.getText().toString().equals(User.getInstance().getUserModel().getPassword())) {
             oldpasswordLayout.setError("Invalid password!");
         }
         fireBaseUserModel.setUsername(userNameEditText.getText().toString());

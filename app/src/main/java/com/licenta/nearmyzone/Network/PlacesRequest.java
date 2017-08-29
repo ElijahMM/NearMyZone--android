@@ -28,19 +28,18 @@ public class PlacesRequest {
     private static final String API_KEY = "AIzaSyDuv0seZBjZeAnGenZw2QaH81_y3M-D-ao";
     private PlaceResult placeResult;
     private String nextPage = "none";
-    private String url;
 
-    public void getPlaces(final Context context, Location location, final PlaceResult placeResult1) {
+    public void getPlaces(final Context context, final Location location, final PlaceResult placeResult1) {
         this.placeResult = placeResult1;
-        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
+        final String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
                 "location=" + location.getLatitude() + "," + location.getLongitude() +
-                "&radius=" + "10000" +
-                "&types=" + "train_station|bus_station|hotel|hospital|museum|atm|bus_station|gas_station|taxi_stand|restaurant|pharmacy|store" +
+                "&radius=" + "2000" +
+                "&types=" + "hotel|hospital|museum|atm|bus_station|gas_station|taxi_stand|restaurant|pharmacy|store" +
                 "hasNextPage=true&" +
                 "nextPage()=true" +
                 "&sensor=" + "true" +
                 "&key=" + API_KEY;
-        Log.w("GUrl", url);
+        Log.w("GUrl", "I: " + url);
 
         final JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, url,
                 new Response.Listener<JSONObject>() {
@@ -54,7 +53,7 @@ public class PlacesRequest {
                             }
                             placeResult.gotPlaces(googlePlaces);
                             if (response.has("next_page_token")) {
-                                getAdditionalPlace(context, response.getString("next_page_token"));
+                                getAdditionalPlace(context, location, response.getString("next_page_token"));
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -72,14 +71,14 @@ public class PlacesRequest {
 
     public void getBusPlaces(final Context context, Location location, final PlaceResult placeResult1) {
         this.placeResult = placeResult1;
-        url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
+        String Burl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
                 "location=" + location.getLatitude() + "," + location.getLongitude() +
-                "&radius=" + "10000" +
+                "&radius=" + "5000" +
                 "&types=" + "train_station|bus_station" +
                 "&sensor=" + "true" +
                 "&key=" + API_KEY;
-        Log.w("GUrl", url);
-        final JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, url,
+        Log.w("GUrl", "B: " + Burl);
+        final JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, Burl,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -99,15 +98,25 @@ public class PlacesRequest {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
+                        Log.w("GUrl", error.getLocalizedMessage());
                     }
                 });
         Volley.newRequestQueue(context).add(jsObjRequest);
     }
 
-    public void getAdditionalPlace(Context context, String nextPage) {
-        url += "&next_page_token=" + nextPage;
-        final JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, url,
+    public void getAdditionalPlace(final Context context, final Location location, final String next) {
+        final String Aurl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +
+                "location=" + location.getLatitude() + "," + location.getLongitude() +
+                "&radius=" + "2000" +
+                "&types=" + "hotel|hospital|museum|atm|bus_station|gas_station|taxi_stand|restaurant|pharmacy|store" +
+                "hasNextPage=true&" +
+                "nextPage()=true" +
+                "&sensor=" + "true" +
+                "&key=" + API_KEY +
+                "&pagetoken=" + next;
+        Log.w("GUrl", "A: " + Aurl);
+
+        final JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, Aurl,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -118,6 +127,9 @@ public class PlacesRequest {
                                 googlePlaces.add(parseJSON(jsonArray.getJSONObject(i)));
                             }
                             placeResult.gotAdditionalPlaces(googlePlaces);
+                            if (response.has("next_page_token")) {
+                                getAdditionalPlace(context, location,response.getString("next_page_token"));
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -168,6 +180,7 @@ public class PlacesRequest {
         public abstract void gotPlaces(List<GooglePlace> googlePlaces);
 
         public abstract void gotAdditionalPlaces(List<GooglePlace> googlePlaces);
+
         public abstract void gotBusPlaces(List<GooglePlace> googlePlaces);
     }
 }

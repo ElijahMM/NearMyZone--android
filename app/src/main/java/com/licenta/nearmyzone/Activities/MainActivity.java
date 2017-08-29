@@ -29,6 +29,7 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.Status;
@@ -106,7 +107,9 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.main_view_details_rev)
     TextView detailsRev;
     @BindView(R.id.main_view_direction)
-    FloatingActionButton getDirectionsFAB;
+    FloatingActionMenu getDirectionsFAB;
+    @BindView(R.id.main_view_travel_time)
+    TextView durationTextView;
 
     private GPSLocation gpsLocation;
     private GoogleMap gMap;
@@ -119,6 +122,7 @@ public class MainActivity extends AppCompatActivity
     private LatLng currentSelectedMarker;
     private Location myLocation;
     private PlacesRequest placesRequest;
+    private String currentTravelMode = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,15 +141,9 @@ public class MainActivity extends AppCompatActivity
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        getDirectionsFAB.setVisibility(View.GONE);
         navigationView.setNavigationItemSelectedListener(this);
         populateView();
-        getDirectionsFAB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                retrieveNewRoute(myLocation, currentSelectedMarker);
-
-            }
-        });
         googlePlaceList = new ArrayList<>();
         placesRequest = new PlacesRequest();
     }
@@ -159,9 +157,12 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    @SuppressWarnings("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap = googleMap;
+        gMap.setMyLocationEnabled(true);
+        gMap.getUiSettings().setMyLocationButtonEnabled(false);
         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json));
         if (!Util.askGpsPermission(MainActivity.this)) {
             openDialogForLocation();
@@ -180,6 +181,7 @@ public class MainActivity extends AppCompatActivity
                     getPlaceDetails(pId);
                 }
                 currentSelectedMarker = marker.getPosition();
+                durationTextView.setText("");
                 return false;
             }
         });
@@ -190,8 +192,10 @@ public class MainActivity extends AppCompatActivity
                 detailsView.setVisibility(View.GONE);
                 toggleDetailsView.setBackground(getResources().getDrawable(R.drawable.ic_arrow_drop_up_black_24dp));
                 toggleMenu = false;
+                getDirectionsFAB.close(true);
                 currentSelectedMarker = null;
                 clearPolylinePath();
+                durationTextView.setText("");
             }
         });
     }
@@ -213,6 +217,7 @@ public class MainActivity extends AppCompatActivity
             } else {
                 myMarker.setPosition(new LatLng(location.getLatitude(), location.getLongitude()));
             }
+
             CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(), location.getLongitude()));
             CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
             gMap.moveCamera(center);
@@ -228,18 +233,18 @@ public class MainActivity extends AppCompatActivity
             placesRequest.getBusPlaces(MainActivity.this, location, placeResult);
             myLocation = location;
             if (currentSelectedMarker != null) {
-                retrieveNewRoute(location, currentSelectedMarker);
+                retrieveNewRoute(location, currentSelectedMarker, currentTravelMode);
             }
         }
     };
 
-    private void retrieveNewRoute(Location source, LatLng destination) {
+    private void retrieveNewRoute(Location source, LatLng destination, String type) {
         try {
             new DirectionFinder(
                     MainActivity.this,
                     new LatLng(source.getLatitude(), source.getLongitude()),
                     destination,
-                    "walking",
+                    type,
                     new DirectionFinderListener() {
                         @Override
                         public void onDirectionFinderStart() {
@@ -255,8 +260,11 @@ public class MainActivity extends AppCompatActivity
                                     width(16);
 
                             if (!route.isEmpty()) {
-                                for (int i = 0; i < route.get(0).points.size(); i++)
+                                for (int i = 0; i < route.get(0).points.size(); i++) {
                                     polylineOptions.add(route.get(0).points.get(i));
+
+                                }
+                                durationTextView.setText("Travel time " + (route.get(0).duration.value / 60) + " minutes");
                             }
 
                             polylinePaths.add(gMap.addPolyline(polylineOptions));
@@ -295,9 +303,7 @@ public class MainActivity extends AppCompatActivity
             googlePlaceList.addAll(googlePlaces);
             Util.showObjectLog(googlePlaces);
             for (final GooglePlace googlePlace : googlePlaces) {
-
                 loadMap(googlePlace);
-
             }
         }
 
@@ -343,13 +349,14 @@ public class MainActivity extends AppCompatActivity
                         new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),
                         new LatLng(googlePlace.getLocation().getLat(), googlePlace.getLocation().getLon())
                 );
+                Log.w("Distance", dist + " - " + User.getInstance().getUserModel().getDistance());
                 if (dist < User.getInstance().getUserModel().getDistance()) {
                     placeList.add(googlePlace);
 
                 }
             }
         }
-        if(placeList.size()>0) {
+        if (placeList.size() > 0) {
             GooglePlace nearPlace = placeList.get(0);
             Util.showObjectLog(placeList);
             for (GooglePlace googlePlace : placeList) {
@@ -361,6 +368,7 @@ public class MainActivity extends AppCompatActivity
                         new LatLng(myLocation.getLatitude(), myLocation.getLongitude()),
                         new LatLng(nearPlace.getLocation().getLat(), nearPlace.getLocation().getLon())
                 );
+                Log.w("Distance", dist1 + " - " + dist2);
                 if (dist1 < dist2) {
                     nearPlace = googlePlace;
                 }
@@ -368,9 +376,9 @@ public class MainActivity extends AppCompatActivity
             detailsView.setVisibility(View.VISIBLE);
             getDirectionsFAB.setVisibility(View.VISIBLE);
             getPlaceDetails(nearPlace.getPlace_id());
-            currentSelectedMarker = new LatLng(nearPlace.getLocation().getLat(),nearPlace.getLocation().getLon());
-        }else{
-            Util.showShortToast(MainActivity.this,"No place near you");
+            currentSelectedMarker = new LatLng(nearPlace.getLocation().getLat(), nearPlace.getLocation().getLon());
+        } else {
+            Util.showShortToast(MainActivity.this, "No place near you");
         }
     }
 
@@ -389,10 +397,10 @@ public class MainActivity extends AppCompatActivity
                                 Util.showObjectLog(weatherResponse);
                                 Glide.with(MainActivity.this).load(weatherResponse.getWeatherIconUrl()).into(weatherImageView);
                                 String weatherCond = "It's " + weatherResponse.getWeatherDesc() + " outside" +
-                                        ", temperature " + weatherResponse.getTemp_C() +
-                                        ", feels like " + weatherResponse.getFeelsLikeC() +
-                                        ", wind " + weatherResponse.getWindspeedKmph() +
-                                        ", humidity " + weatherResponse.getHumidity();
+                                        ", temperature " + weatherResponse.getTemp_C() + "\u2103" +
+                                        ", feels like " + weatherResponse.getFeelsLikeC() + "\u2103" +
+                                        ", wind " + weatherResponse.getWindspeedKmph() + " kmh" +
+                                        ", humidity " + weatherResponse.getHumidity() + "%";
                                 weatherTextView.setText(weatherCond);
                                 weatherView.setVisibility(View.VISIBLE);
                             }
@@ -515,7 +523,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @OnClick({R.id.main_view_toggle_details})
+    @OnClick({R.id.main_view_toggle_details, R.id.main_view_myLocation, R.id.main_view_direction_walk, R.id.main_view_direction_car})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.main_view_toggle_details:
@@ -528,6 +536,22 @@ public class MainActivity extends AppCompatActivity
                     toggleDetailsView.setBackground(getResources().getDrawable(R.drawable.ic_arrow_drop_up_black_24dp));
                     toggleMenu = false;
                 }
+                break;
+            case R.id.main_view_myLocation:
+                if (myLocation != null) {
+                    CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
+                    CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
+                    gMap.moveCamera(center);
+                    gMap.animateCamera(zoom);
+                }
+                break;
+            case R.id.main_view_direction_walk:
+                currentTravelMode = "walking";
+                retrieveNewRoute(myLocation, currentSelectedMarker, "walking");
+                break;
+            case R.id.main_view_direction_car:
+                currentTravelMode = "driving";
+                retrieveNewRoute(myLocation, currentSelectedMarker, "driving");
                 break;
         }
     }
@@ -577,7 +601,7 @@ public class MainActivity extends AppCompatActivity
         choosePopup.setHotelClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                findNearPlace(AbsValues.hospital);
+                findNearPlace(AbsValues.hotel);
                 choosePopup.dismissDialog();
             }
         });
